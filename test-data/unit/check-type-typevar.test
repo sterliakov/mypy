@@ -140,19 +140,19 @@ T = TypeVar('T', bound=Union[A, B])
 
 def return_narrowing(x: Type[T]) -> T:
     if issubclass(x, B):
-        reveal_type(x)  # N: Revealed type is "Type[__main__.B]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         return x(1)
     else:
-        reveal_type(x)  # N: Revealed type is "Type[__main__.A]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         return x('foo')
 
 def return_indirect_narrowing(x: Type[T]) -> T:
     ret: T
     if issubclass(x, B):
-        reveal_type(x)  # N: Revealed type is "Type[__main__.B]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         ret = x(1)
     else:
-        reveal_type(x)  # N: Revealed type is "Type[__main__.A]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         ret = x('foo')
     return ret
 [builtins fixtures/isinstance.pyi]
@@ -167,7 +167,6 @@ class B:
     def __init__(self, x: int) -> None: pass
 
 T = TypeVar('T', A, B)
-T2 = TypeVar('T2', bound=Union[A, B])
 
 def return_narrowing(x: Type[T]) -> T:
     if issubclass(x, B):
@@ -189,7 +188,7 @@ def return_indirect_narrowing(x: Type[T]) -> T:
 [builtins fixtures/isinstance.pyi]
 
 [case testTypeOfTypeVarBoundNarrowing]
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Union
 class A:
     x: str
     def __init__(self, x: str) -> None: pass
@@ -201,19 +200,19 @@ T = TypeVar('T', bound=Union[A, B])
 
 def return_narrowing(x: Type[T]) -> T:
     if issubclass(x, B):
-        reveal_type(x)  # N: Revealed type is "Type[__main__.B]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         return x(1)
     else:
-        reveal_type(x)  # N: Revealed type is "Type[__main__.A]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         return x('foo')
 
 def return_indirect_narrowing(x: Type[T]) -> T:
     ret: T
     if issubclass(x, B):
-        reveal_type(x)  # N: Revealed type is "Type[__main__.B]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         ret = x(1)
     else:
-        reveal_type(x)  # N: Revealed type is "Type[__main__.A]"
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
         ret = x('foo')
     return ret
 [builtins fixtures/isinstance.pyi]

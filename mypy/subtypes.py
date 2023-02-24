@@ -1767,17 +1767,22 @@ def restrict_subtype_away(t: Type, s: Type) -> Type:
     This is used for type inference of runtime type checks such as
     isinstance(). Currently, this just removes elements of a union type.
     """
+    s_t = get_proper_type(s)
+    if isinstance(s_t, TypeVarType) and s_t.upper_bound:
+        s_t = s_t.upper_bound
     p_t = get_proper_type(t)
     if isinstance(p_t, UnionType):
-        new_items = try_restrict_literal_union(p_t, s)
+        new_items = try_restrict_literal_union(p_t, s_t)
         if new_items is None:
             new_items = [
-                restrict_subtype_away(item, s)
+                restrict_subtype_away(item, s_t)
                 for item in p_t.relevant_items()
-                if (isinstance(get_proper_type(item), AnyType) or not covers_at_runtime(item, s))
+                if (isinstance(get_proper_type(item), AnyType) or not covers_at_runtime(item, s_t))
             ]
         return UnionType.make_union(new_items)
-    elif covers_at_runtime(t, s):
+    elif isinstance(p_t, TypeVarType) and p_t.upper_bound:
+        return p_t.copy_modified(upper_bound=restrict_subtype_away(p_t.upper_bound, s_t))
+    elif covers_at_runtime(t, s_t):
         return UninhabitedType()
     else:
         return t

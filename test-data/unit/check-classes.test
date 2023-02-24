@@ -6493,7 +6493,8 @@ reveal_type(i.x)  # N: Revealed type is "builtins.int"
 from typing import Type, TypeVar, Generic
 
 class Base: ...
-class Sub(Base): ...
+class Sub(Base):
+    x: int
 
 T = TypeVar('T', bound=Base)
 
@@ -6501,11 +6502,19 @@ class C(Generic[T]):
     def meth(self, cls: Type[T]) -> None:
         if not issubclass(cls, Sub):
             return
-        reveal_type(cls)  # N: Revealed type is "Type[__main__.Sub]"
+        reveal_type(cls)  # N: Revealed type is "Type[T`1]"
+        cls.x
     def other(self, cls: Type[T]) -> None:
         if not issubclass(cls, Sub):
             return
-        reveal_type(cls)  # N: Revealed type is "Type[__main__.Sub]"
+        reveal_type(cls)  # N: Revealed type is "Type[T`1]"
+        cls.x
+    def other_reversed(self, cls: Type[T]) -> None:
+        if issubclass(cls, Sub):
+            reveal_type(cls)  # N: Revealed type is "Type[T`1]"
+            cls.x
+        reveal_type(cls)  # N: Revealed type is "Type[T`1]"
+        cls.x  # E: "Type[T]" has no attribute "x"
 
 [builtins fixtures/isinstancelist.pyi]
 

@@ -6759,6 +6759,8 @@ def conditional_types(
                 ]
             )
             remaining_type = restrict_subtype_away(current_type, proposed_precise_type)
+            if isinstance(remaining_type, TypeVarType):
+                proposed_type = remaining_type.copy_modified(upper_bound=proposed_type)
             return proposed_type, remaining_type
     else:
         # An isinstance check, but we don't understand the type

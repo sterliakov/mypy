@@ -216,3 +216,37 @@ def return_indirect_narrowing(x: Type[T]) -> T:
         ret = x('foo')
     return ret
 [builtins fixtures/isinstance.pyi]
+
+[case testTypeOfTypeVarBoundThreeNarrowing]
+from typing import TypeVar, Type, Union
+class A:
+    x: str
+    def __init__(self, x: str) -> None: pass
+class B:
+    x: int
+    def __init__(self, x: int) -> None: pass
+class C:
+    x: bool
+    def __init__(self, x: int) -> None: pass
+
+T = TypeVar('T', bound=Union[A, B, C])
+
+def return_narrowing(x: Type[T]) -> T:
+    if issubclass(x, B):
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
+        return x(1)
+    elif issubclass(x, C):
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
+        return x(True)
+    else:
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
+        return x('foo')
+
+def return_narrowing_compatible(x: Type[T]) -> T:
+    if issubclass(x, (B, C)):
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
+        return x(True)
+    else:
+        reveal_type(x)  # N: Revealed type is "Type[T`-1]"
+        return x('foo')
+[builtins fixtures/isinstance.pyi]

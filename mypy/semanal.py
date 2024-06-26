@@ -979,9 +979,13 @@ class SemanticAnalyzer(
             and isinstance(defn.type, CallableType)
             and self.wrapped_coro_return_types.get(defn) != defn.type
         ):
-            if defn.is_async_generator:
-                # Async generator types are handled elsewhere
+            ret_typeinfo = getattr(defn.type.ret_type, "type", None)
+            if ret_typeinfo and ret_typeinfo.has_base("typing.AsyncIterator"):
+                defn.is_coroutine = True
+                defn.is_async_generator = True
                 pass
+            elif ret_typeinfo and ret_typeinfo.has_base("typing.Awaitable"):
+                defn.is_coroutine = True
             else:
                 # A coroutine defined as `async def foo(...) -> T: ...`
                 # has external return type `Coroutine[Any, Any, T]`.

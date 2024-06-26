@@ -1003,7 +1003,9 @@ class TypeChecker(NodeVisitor[None], CheckerPluginInterface):
             return AnyType(TypeOfAny.from_another_any, source_any=return_type)
         assert isinstance(return_type, Instance), "Should only be called on coroutine functions."
         # Note: return type is the 3rd type parameter of Coroutine.
-        return return_type.args[2]
+        if len(return_type.args) >= 3:
+            return return_type.args[2]
+        return AnyType(TypeOfAny.from_error)
 
     def get_generator_return_type(self, return_type: Type, is_coroutine: bool) -> Type:
         """Given the declared return type of a generator (t), return the type it returns (tr)."""
@@ -1355,8 +1357,13 @@ class TypeChecker(NodeVisitor[None], CheckerPluginInterface):
                     self.binder.pop_frame(True, 0)
 
             if not unreachable:
-                if defn.is_generator or is_named_instance(
-                    self.return_types[-1], "typing.AwaitableGenerator"
+                if (
+                    defn.is_generator
+                    or is_named_instance(self.return_types[-1], "typing.AwaitableGenerator")
+                    or (
+                        (t := getattr(self.return_types[-1], "type", None))
+                        and t.has_base("typing.AsyncIterator")
+                    )
                 ):
                     return_type = self.get_generator_return_type(
                         self.return_types[-1], defn.is_coroutine
